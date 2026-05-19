@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const LOCAL_TTS_URL = 'http://127.0.0.1:8880/tts';
+const LOCAL_TTS_URL = process.env.TTS_SERVER_URL ?? 'http://127.0.0.1:8880/tts';
 
 // Strip markdown so TTS doesn't read "asterisk asterisk bold asterisk asterisk"
 function stripMarkdown(text: string): string {
