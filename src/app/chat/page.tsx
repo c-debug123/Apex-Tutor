@@ -402,6 +402,9 @@ export default function ChatPage() {
         </Link>
         <div className="flex items-center gap-3">
           <LanguagePill />
+          <Link href="/learn" style={{ color: '#6163fe', fontSize: '13px', fontWeight: 500 }}>
+            Learn
+          </Link>
           <Link href="/" className="text-sm transition-colors" style={{ color: '#6b7c94' }}>
             Back to home
           </Link>

@@ -55,6 +55,21 @@ export default function HomeHeader() {
               {user.displayName ?? user.email}
             </span>
             <Link
+              href="/learn"
+              style={{
+                background: 'transparent',
+                color: '#6163fe',
+                fontSize: '13px',
+                fontWeight: 600,
+                padding: '7px 16px',
+                borderRadius: '8px',
+                textDecoration: 'none',
+                border: '1px solid #e2e8f0',
+              }}
+            >
+              Learn
+            </Link>
+            <Link
               href="/chat"
               style={{
                 background: '#6163fe',
