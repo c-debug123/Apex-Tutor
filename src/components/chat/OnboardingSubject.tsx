@@ -82,7 +82,7 @@ export default function OnboardingSubject({ name, onSelect }: OnboardingSubjectP
           }}
         >
           <p style={{ fontSize: '14px', color: '#334155', margin: '0 0 14px', lineHeight: 1.5 }}>
-            What do you want to learn today,{' '}
+            What subject do you want to study,{' '}
             <strong style={{ color: '#6163fe' }}>{name}</strong>?
           </p>
 
@@ -156,21 +156,6 @@ export default function OnboardingSubject({ name, onSelect }: OnboardingSubjectP
                       </span>
                     )}
                   </div>
-
-                  {/* Tutor name badge */}
-                  <span
-                    style={{
-                      fontSize: '11px',
-                      fontWeight: 600,
-                      color: t.badgeColor,
-                      background: t.badgeBg,
-                      borderRadius: '4px',
-                      padding: '2px 6px',
-                      alignSelf: 'flex-start',
-                    }}
-                  >
-                    {t.tutorName}
-                  </span>
 
                   {/* Tagline */}
                   <p style={{ fontSize: '11px', color: '#94a3b8', lineHeight: 1.4, margin: 0 }}>

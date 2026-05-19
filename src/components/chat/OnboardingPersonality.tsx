@@ -6,11 +6,6 @@ interface OnboardingPersonalityProps {
 
 const PERSONALITIES = [
   {
-    id: 'socratic',
-    label: 'Socratic',
-    description: 'Ask me questions, make me think 🤔',
-  },
-  {
     id: 'encouraging',
     label: 'Encouraging',
     description: 'Cheer me on, go easy on mistakes 🌟',
@@ -71,7 +66,7 @@ export default function OnboardingPersonality({ onSelect }: OnboardingPersonalit
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
+              gridTemplateColumns: '1fr',
               gap: '8px',
             }}
             role="group"
