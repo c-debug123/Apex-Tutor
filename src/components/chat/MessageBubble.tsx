@@ -1,6 +1,7 @@
 'use client';
 
 import { type User } from 'firebase/auth';
+import ReactMarkdown from 'react-markdown';
 import ReadAloudButton from './ReadAloudButton';
 
 export interface Message {
@@ -98,12 +99,24 @@ export default function MessageBubble({ message, user }: MessageBubbleProps) {
             borderRadius: '4px 18px 18px 18px',
           }}
         >
-          <p
-            className="whitespace-pre-wrap break-words text-sm leading-relaxed"
+          <div
+            className="break-words text-sm leading-relaxed"
             style={{ color: '#334155' }}
           >
-            {message.content}
-          </p>
+            <ReactMarkdown
+              components={{
+                p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                strong: ({ children }) => <strong className="font-semibold" style={{ color: '#232323' }}>{children}</strong>,
+                em: ({ children }) => <em className="italic">{children}</em>,
+                ol: ({ children }) => <ol className="my-2 list-decimal pl-5 space-y-1">{children}</ol>,
+                ul: ({ children }) => <ul className="my-2 list-disc pl-5 space-y-1">{children}</ul>,
+                li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+                code: ({ children }) => <code className="rounded px-1 py-0.5 text-xs font-mono" style={{ background: '#f1f5f9', color: '#6163fe' }}>{children}</code>,
+              }}
+            >
+              {message.content}
+            </ReactMarkdown>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs" style={{ color: '#94a3b8' }}>

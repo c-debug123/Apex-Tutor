@@ -4,6 +4,29 @@ interface OnboardingSubjectProps {
   onSelect: (subject: 'math' | 'science') => void;
 }
 
+const TUTORS = [
+  {
+    subject: 'math' as const,
+    name: 'Ms. Reyes',
+    initial: 'R',
+    tagline: 'Making math click, one question at a time.',
+    avatarColor: 'linear-gradient(135deg, #6163fe 0%, #a78bfa 100%)',
+    badgeColor: '#6163fe',
+    badgeBg: '#f1f0ff',
+    label: 'Mathematics',
+  },
+  {
+    subject: 'science' as const,
+    name: 'Prof. Cruz',
+    initial: 'C',
+    tagline: "Science is everywhere — let's find it together.",
+    avatarColor: 'linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%)',
+    badgeColor: '#0ea5e9',
+    badgeBg: '#f0f9ff',
+    label: 'Science',
+  },
+];
+
 export default function OnboardingSubject({ onSelect }: OnboardingSubjectProps) {
   return (
     <div className="flex items-start gap-3">
@@ -22,7 +45,7 @@ export default function OnboardingSubject({ onSelect }: OnboardingSubjectProps) 
         A
       </div>
 
-      <div className="flex flex-col gap-1" style={{ maxWidth: '65%' }}>
+      <div className="flex flex-col gap-3" style={{ maxWidth: '480px' }}>
         <div
           className="px-4 py-3"
           style={{
@@ -32,32 +55,66 @@ export default function OnboardingSubject({ onSelect }: OnboardingSubjectProps) 
           }}
         >
           <p className="mb-3 text-sm leading-relaxed" style={{ color: '#334155' }}>
-            What subject do you need help with?
+            Who do you want to learn with today?
           </p>
-          <div className="flex gap-3" role="group" aria-label="Select a subject">
-            {(['math', 'science'] as const).map((s) => (
+          <div className="flex gap-3">
+            {TUTORS.map((t) => (
               <button
-                key={s}
+                key={t.subject}
                 type="button"
-                onClick={() => onSelect(s)}
-                className="flex-1 px-4 py-2 text-sm font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                onClick={() => onSelect(t.subject)}
+                className="flex flex-1 flex-col gap-2 rounded-xl p-3 text-left transition-all"
                 style={{
-                  border: '1px solid #6163fe',
-                  color: '#6163fe',
-                  borderRadius: '9999px',
-                  background: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  background: '#fafafa',
                   cursor: 'pointer',
                 }}
                 onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.background = '#6163fe';
-                  (e.currentTarget as HTMLButtonElement).style.color = '#ffffff';
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = t.badgeColor;
+                  (e.currentTarget as HTMLButtonElement).style.background = '#ffffff';
+                  (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 2px 12px ${t.badgeColor}22`;
                 }}
                 onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.background = '#ffffff';
-                  (e.currentTarget as HTMLButtonElement).style.color = '#6163fe';
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = '#e2e8f0';
+                  (e.currentTarget as HTMLButtonElement).style.background = '#fafafa';
+                  (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none';
                 }}
               >
-                {s.charAt(0).toUpperCase() + s.slice(1)}
+                {/* Avatar */}
+                <div
+                  className="flex items-center justify-center text-sm font-bold text-white"
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '50%',
+                    background: t.avatarColor,
+                    flexShrink: 0,
+                  }}
+                >
+                  {t.initial}
+                </div>
+                {/* Name + badge */}
+                <div className="flex items-center gap-1.5">
+                  <span style={{ fontSize: '13px', fontWeight: 600, color: '#232323' }}>
+                    {t.name}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: '10px',
+                      fontWeight: 600,
+                      color: t.badgeColor,
+                      background: t.badgeBg,
+                      borderRadius: '4px',
+                      padding: '1px 5px',
+                    }}
+                  >
+                    {t.label}
+                  </span>
+                </div>
+                {/* Tagline */}
+                <p style={{ fontSize: '11px', color: '#94a3b8', lineHeight: 1.4 }}>
+                  {t.tagline}
+                </p>
               </button>
             ))}
           </div>
