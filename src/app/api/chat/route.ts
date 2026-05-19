@@ -208,9 +208,10 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ reply: parsed.reply, suggestions });
   } catch (err) {
-    console.error((err as Error).message);
+    const msg = (err as Error).message ?? String(err);
+    console.error('[api/chat] Groq error:', msg);
     return NextResponse.json(
-      { error: 'Tutor is temporarily unavailable. Please try again.' },
+      { error: `Tutor error: ${msg}` },
       { status: 500 }
     );
   }
