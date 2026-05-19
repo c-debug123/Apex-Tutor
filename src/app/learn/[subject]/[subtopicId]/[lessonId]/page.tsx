@@ -68,6 +68,11 @@ export default function LessonPage({
   const [phase, setPhase] = useState<LessonPhase>('teach');
   const [language] = useState<Language>('english');
   const [hasStarted, setHasStarted] = useState(false);
+  const [lessonDone, setLessonDone] = useState(false);
+
+  // Force-advance phase after 1 exchange per phase (teach→practice→quiz→review)
+  const phaseExchangeCount = useRef(0);
+  const PHASE_ORDER: LessonPhase[] = ['teach', 'practice', 'quiz', 'review'];
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const didStart = useRef(false);
@@ -134,7 +139,22 @@ export default function LessonPage({
         };
 
         setMessages((prev) => [...prev, assistantMessage]);
-        setPhase(tutorResponse.phase);
+
+        // Force phase advancement: after 1 AI reply per phase, move to the next
+        phaseExchangeCount.current += 1;
+        if (phaseExchangeCount.current >= 1) {
+          phaseExchangeCount.current = 0;
+          const currentIdx = PHASE_ORDER.indexOf(currentPhase);
+          if (currentPhase === 'review') {
+            // Already in review → lesson is done
+            setLessonDone(true);
+          } else {
+            const nextPhase = PHASE_ORDER[currentIdx + 1] ?? 'review';
+            setPhase(nextPhase);
+          }
+        } else {
+          setPhase(tutorResponse.phase);
+        }
       } catch {
         setMessages((prev) => [
           ...prev,
@@ -370,16 +390,43 @@ export default function LessonPage({
             )}
           </div>
 
-          {/* Input */}
-          <ChatInput
-            input={input}
-            attachment={null}
-            isLoading={isLoading}
-            onboardingActive={false}
-            onInputChange={setInput}
-            onSend={() => sendMessage(input, null)}
-            onAttachmentChange={() => {}}
-          />
+          {/* Lesson done banner + next lesson button */}
+          {lessonDone ? (
+            <div
+              className="flex flex-shrink-0 items-center justify-between px-6 py-4"
+              style={{ borderTop: '1px solid #e2e8f0', background: '#f8fafc' }}
+            >
+              <span style={{ fontSize: '14px', fontWeight: 600, color: '#232323' }}>
+                🎉 Lesson complete!
+              </span>
+              <div className="flex gap-2">
+                <Link
+                  href={`/learn/${subject}/${subtopicId}`}
+                  style={{
+                    background: '#6163fe',
+                    color: '#fff',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    padding: '8px 18px',
+                    borderRadius: '8px',
+                    textDecoration: 'none',
+                  }}
+                >
+                  Next lesson →
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <ChatInput
+              input={input}
+              attachment={null}
+              isLoading={isLoading}
+              onboardingActive={false}
+              onInputChange={setInput}
+              onSend={() => sendMessage(input, null)}
+              onAttachmentChange={() => {}}
+            />
+          )}
         </div>
       </div>
     </div>

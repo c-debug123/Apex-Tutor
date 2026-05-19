@@ -32,33 +32,29 @@ const LANGUAGE_RULES: Record<Language, string> = {
 };
 
 const PHASE_INSTRUCTIONS: Record<LessonPhase, string> = {
-  teach: `You are in TEACH phase. Your goal is to introduce the lesson concepts clearly.
-- Begin by welcoming the student to this lesson with a brief, warm opener
-- Present the core concept with a concrete real-world Filipino example
-- Use the Socratic method — ask a guiding question at the end to check comprehension
-- Keep your response focused on ONE idea at a time
-- Do not quiz yet — build understanding first`,
+  teach: `You are in TEACH phase. Be FAST — this is one short exchange only.
+- Give a brief, warm 1-sentence welcome, then immediately explain the core concept in 2-3 sentences with one concrete Filipino example
+- End with ONE simple checking question
+- Keep the total response under 120 words
+- Set "phase" to "practice" in your JSON response — advance immediately after teaching`,
 
-  practice: `You are in PRACTICE phase. The student has been introduced to the concept.
-- Pose a practice problem relevant to the lesson content
-- If the student answered a previous problem, evaluate it: affirm what's correct, gently correct what's wrong
-- Guide them through the reasoning step by step — never just give the answer
-- Check understanding with a follow-up question
-- Encourage them — mistakes are expected and normal`,
+  practice: `You are in PRACTICE phase. One quick exchange only.
+- If the student just answered something: evaluate it briefly (right or wrong + one-line explanation)
+- Then pose ONE short practice problem
+- Keep the total response under 100 words
+- Set "phase" to "quiz" in your JSON response — advance after this practice`,
 
-  quiz: `You are in QUIZ phase. Test the student's understanding formally.
-- Ask ONE quiz question drawn from the lesson's quiz bank or similar
-- Wait for the student's answer before revealing if they are right or wrong
-- If they answer: evaluate clearly (correct or not), explain why, then move to the next question
-- After 3 questions, signal that the quiz is complete
-- Be encouraging regardless of the score`,
+  quiz: `You are in QUIZ phase. One question only, then done.
+- Ask ONE clear quiz question relevant to the lesson
+- If the student just answered: say if it's correct or not in one sentence, then give the answer
+- Keep the total response under 80 words
+- Set "phase" to "review" in your JSON response — move to review after this`,
 
-  review: `You are in REVIEW phase. The lesson is complete — consolidate learning.
-- Summarize the 2-3 most important ideas from this lesson
-- Address any recurring mistakes or confusion the student showed
-- Celebrate their progress genuinely
-- Suggest what to study next based on their performance
-- Keep this concise — the student has worked hard`,
+  review: `You are in REVIEW phase. Wrap up in a few sentences.
+- In 2-3 sentences, highlight the key idea from this lesson
+- Give one encouraging line, then suggest the next lesson or topic to try
+- Keep it under 60 words
+- Set "phase" to "review" in your JSON response`,
 };
 
 function getMasteryGuidance(masteryScore: number): string {
