@@ -4,6 +4,7 @@ import { buildTutorPrompt } from '@/lib/tutor-orchestrator';
 import { getStudentProgress, getMemorySnapshot } from '@/lib/learn';
 import { TUTORS } from '@/data/tutors';
 import { MATHEMATICS_SUBTOPICS } from '@/data/curriculum/mathematics';
+import { SCIENCE_SUBTOPICS } from '@/data/curriculum/science';
 import { TutorChatResponse, LessonPhase, Subtopic, Lesson } from '@/types/tutor';
 
 type Language = 'english' | 'taglish' | 'tagalog';
@@ -45,7 +46,7 @@ function extractTutorJson(raw: string): TutorChatResponse | null {
 }
 
 function getAllSubtopics(): Subtopic[] {
-  return MATHEMATICS_SUBTOPICS;
+  return [...MATHEMATICS_SUBTOPICS, ...SCIENCE_SUBTOPICS];
 }
 
 function findSubtopicAndLesson(

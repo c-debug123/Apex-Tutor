@@ -9,6 +9,7 @@ import TypingIndicator from '@/components/chat/TypingIndicator';
 import ChatInput from '@/components/chat/ChatInput';
 import { subscribeToAuthState } from '@/lib/auth';
 import { MATHEMATICS_SUBTOPICS } from '@/data/curriculum/mathematics';
+import { SCIENCE_SUBTOPICS } from '@/data/curriculum/science';
 import { Subtopic, LessonPhase, TutorChatResponse } from '@/types/tutor';
 import { TUTORS } from '@/data/tutors';
 
@@ -38,6 +39,9 @@ const PHASE_COLORS: Record<LessonPhase, { bg: string; text: string; border: stri
 function getSubtopic(subject: string, subtopicId: string): Subtopic | null {
   if (subject === 'mathematics') {
     return MATHEMATICS_SUBTOPICS.find((s) => s.id === subtopicId) ?? null;
+  }
+  if (subject === 'science') {
+    return SCIENCE_SUBTOPICS.find((s) => s.id === subtopicId) ?? null;
   }
   return null;
 }

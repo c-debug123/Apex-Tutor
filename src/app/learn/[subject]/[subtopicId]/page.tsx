@@ -4,11 +4,15 @@ import { use } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { MATHEMATICS_SUBTOPICS } from '@/data/curriculum/mathematics';
+import { SCIENCE_SUBTOPICS } from '@/data/curriculum/science';
 import { Subtopic } from '@/types/tutor';
 
 function getSubtopic(subject: string, subtopicId: string): Subtopic | null {
   if (subject === 'mathematics') {
     return MATHEMATICS_SUBTOPICS.find((s) => s.id === subtopicId) ?? null;
+  }
+  if (subject === 'science') {
+    return SCIENCE_SUBTOPICS.find((s) => s.id === subtopicId) ?? null;
   }
   return null;
 }

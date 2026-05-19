@@ -4,6 +4,7 @@ import { use } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { MATHEMATICS_SUBTOPICS } from '@/data/curriculum/mathematics';
+import { SCIENCE_SUBTOPICS } from '@/data/curriculum/science';
 import { TUTORS } from '@/data/tutors';
 import { Subtopic, Difficulty } from '@/types/tutor';
 
@@ -16,6 +17,7 @@ const DIFFICULTY_COLORS: Record<Difficulty, { bg: string; text: string; label: s
 
 function getSubtopics(subject: string): Subtopic[] {
   if (subject === 'mathematics') return MATHEMATICS_SUBTOPICS;
+  if (subject === 'science') return SCIENCE_SUBTOPICS;
   return [];
 }
 
