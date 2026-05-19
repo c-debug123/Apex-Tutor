@@ -3,6 +3,14 @@
 import { type User } from 'firebase/auth';
 import ReactMarkdown from 'react-markdown';
 import ReadAloudButton from './ReadAloudButton';
+import VisualBlock from './VisualBlock';
+
+export interface Visual {
+  type: 'svg' | 'desmos';
+  code?: string;       // for svg
+  expression?: string; // for desmos
+  caption?: string;
+}
 
 export interface Message {
   id: string;
@@ -10,6 +18,7 @@ export interface Message {
   content: string;
   timestamp: Date;
   suggestions?: string[];
+  visual?: Visual;
   attachment?: {
     name: string;
     type: 'image' | 'pdf';
@@ -116,6 +125,11 @@ export default function MessageBubble({ message, user }: MessageBubbleProps) {
             >
               {message.content}
             </ReactMarkdown>
+            {message.visual && (
+              <div style={{ marginTop: '12px' }}>
+                <VisualBlock visual={message.visual} />
+              </div>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-2">

@@ -8,6 +8,10 @@ interface HistoryMessage {
 
 type Language = 'english' | 'taglish' | 'tagalog';
 
+export type Visual =
+  | { type: 'svg'; code: string; caption?: string }
+  | { type: 'desmos'; expression: string; caption?: string };
+
 interface ChatRequest {
   message: string;
   subject: 'math' | 'science' | null;
@@ -75,17 +79,37 @@ HONEST ABOUT LIMITS — If a question is outside Math or Science, redirect warml
 - Do not give complete homework answers — guide the student instead.
 - Stay within Math and Science. Redirect other topics warmly but firmly.
 
+━━━ VISUALS (use when helpful) ━━━
+When a diagram, shape, or graph would genuinely help the student understand, include a "visual" field in your JSON.
+
+For diagrams and labeled figures use type "svg":
+- Generate clean, simple SVG code (viewBox="0 0 400 300" or similar)
+- Use stroke="#334155", fill colors sparingly, fontSize 13-14 for labels
+- Keep it simple — a clear labeled diagram, not a work of art
+- Good uses: number lines, geometric shapes, coordinate planes, labeled cell parts, atomic structure, the water cycle steps, fractions as pie charts, etc.
+
+For mathematical function graphs use type "desmos":
+- Provide a single Desmos-compatible LaTeX expression string (e.g. "y=x^2+2x-3")
+- Good uses: plotting equations, showing intersections, visualizing linear/quadratic/trigonometric functions
+
+Only include a visual when it genuinely adds value. Do NOT force a visual on every message. Skip the visual field entirely when text is sufficient.
+
+If including a visual, add an optional short "caption" (under 10 words) describing what's shown.
+
 ━━━ OUTPUT FORMAT (CRITICAL — follow exactly) ━━━
 You MUST respond with valid JSON only. No text before or after. Use this exact structure:
 
 {
   "reply": "<your full tutor response here>",
+  "visual": { "type": "svg", "code": "<svg>...</svg>", "caption": "A right triangle" },
   "suggestions": [
     "<suggestion 1>",
     "<suggestion 2>",
     "<suggestion 3>"
   ]
 }
+
+The "visual" field is OPTIONAL — omit it entirely when a diagram or graph would not add value.
 
 The "reply" field: your full tutor response following all the teaching rules above.
 
@@ -111,12 +135,38 @@ Topics of focus: ${topicsText}
 Tailor all explanations, examples, questions, and suggestions to these topics.`;
 }
 
-function extractJson(raw: string): { reply: string; suggestions: string[] } | null {
+function validateVisual(v: unknown): Visual | undefined {
+  if (!v || typeof v !== 'object') return undefined;
+  const obj = v as Record<string, unknown>;
+  if (obj.type === 'svg') {
+    if (typeof obj.code !== 'string' || !obj.code.trimStart().startsWith('<svg')) return undefined;
+    return {
+      type: 'svg',
+      code: obj.code,
+      caption: typeof obj.caption === 'string' ? obj.caption : undefined,
+    };
+  }
+  if (obj.type === 'desmos') {
+    if (typeof obj.expression !== 'string' || obj.expression.trim().length === 0) return undefined;
+    return {
+      type: 'desmos',
+      expression: obj.expression,
+      caption: typeof obj.caption === 'string' ? obj.caption : undefined,
+    };
+  }
+  return undefined;
+}
+
+function extractJson(raw: string): { reply: string; suggestions: string[]; visual?: Visual } | null {
   // Try direct parse first
   try {
     const parsed = JSON.parse(raw);
     if (typeof parsed.reply === 'string' && Array.isArray(parsed.suggestions)) {
-      return parsed as { reply: string; suggestions: string[] };
+      return {
+        reply: parsed.reply,
+        suggestions: parsed.suggestions as string[],
+        visual: validateVisual(parsed.visual),
+      };
     }
   } catch {
     // fall through to regex extraction
@@ -129,7 +179,11 @@ function extractJson(raw: string): { reply: string; suggestions: string[] } | nu
   try {
     const parsed = JSON.parse(match[0]);
     if (typeof parsed.reply === 'string' && Array.isArray(parsed.suggestions)) {
-      return parsed as { reply: string; suggestions: string[] };
+      return {
+        reply: parsed.reply,
+        suggestions: parsed.suggestions as string[],
+        visual: validateVisual(parsed.visual),
+      };
     }
   } catch {
     return null;
@@ -206,7 +260,13 @@ export async function POST(req: NextRequest) {
       suggestions.push(['Can you explain more?', 'Give me an example.', 'Let me try one!'][suggestions.length]);
     }
 
-    return NextResponse.json({ reply: parsed.reply, suggestions });
+    const responseBody: { reply: string; suggestions: string[]; visual?: Visual } = {
+      reply: parsed.reply,
+      suggestions,
+    };
+    if (parsed.visual) responseBody.visual = parsed.visual;
+
+    return NextResponse.json(responseBody);
   } catch (err) {
     const msg = (err as Error).message ?? String(err);
     console.error('[api/chat] Groq error:', msg);

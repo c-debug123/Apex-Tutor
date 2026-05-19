@@ -251,7 +251,7 @@ function ChatInterface() {
         });
 
         if (!response.ok) throw new Error(`API error: ${response.status}`);
-        const data = (await response.json()) as { reply?: string; suggestions?: string[] };
+        const data = (await response.json()) as { reply?: string; suggestions?: string[]; visual?: Message['visual'] };
 
         const assistantMessage: Message = {
           id: crypto.randomUUID(),
@@ -259,6 +259,7 @@ function ChatInterface() {
           content: data.reply ?? 'Sorry, something went wrong. Please try again.',
           timestamp: new Date(),
           suggestions: data.suggestions ?? [],
+          visual: data.visual ?? undefined,
         };
 
         setMessages((prev) => {
