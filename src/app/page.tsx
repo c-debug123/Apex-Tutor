@@ -1,6 +1,5 @@
 import HomeHeader from '@/components/HomeHeader';
 import HeroSection from '@/components/HeroSection';
-import QuestionCards from '@/components/QuestionCards';
 import PricingSection from '@/components/PricingSection';
 import TestimonialsSection from '@/components/TestimonialsSection';
 
@@ -45,7 +44,6 @@ export default function Home() {
       <div className="relative" style={{ zIndex: 1 }}>
         <HomeHeader />
         <HeroSection />
-        <QuestionCards />
         <TestimonialsSection />
         <PricingSection />
       </div>
