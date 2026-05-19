@@ -8,7 +8,11 @@ import { type User } from 'firebase/auth';
 import MessageBubble, { type Message } from '@/components/chat/MessageBubble';
 import TypingIndicator from '@/components/chat/TypingIndicator';
 import ChatInput from '@/components/chat/ChatInput';
+import OnboardingWelcome from '@/components/chat/OnboardingWelcome';
+import OnboardingName from '@/components/chat/OnboardingName';
+import OnboardingAge from '@/components/chat/OnboardingAge';
 import OnboardingSubject from '@/components/chat/OnboardingSubject';
+import OnboardingPersonality from '@/components/chat/OnboardingPersonality';
 import OnboardingTopics from '@/components/chat/OnboardingTopics';
 import OnboardingSignIn from '@/components/chat/OnboardingSignIn';
 import SuggestedReplies from '@/components/chat/SuggestedReplies';
@@ -23,7 +27,16 @@ import {
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type OnboardingStep = 'subject' | 'topics' | 'signin' | 'complete';
+type OnboardingStep =
+  | 'welcome'
+  | 'name'
+  | 'age'
+  | 'subject'
+  | 'personality'
+  | 'topics'
+  | 'signin'
+  | 'complete';
+
 type Language = 'english' | 'taglish' | 'tagalog';
 
 const LANGUAGE_LABELS: Record<Language, string> = {
@@ -106,6 +119,9 @@ function ChatInterface() {
   const [onboardingStep, setOnboardingStep] = useState<OnboardingStep | null>(null);
   const [subject, setSubject] = useState<'math' | 'science' | null>(null);
   const [topics, setTopics] = useState<string[]>([]);
+  const [studentName, setStudentName] = useState('');
+  const [studentAge, setStudentAge] = useState('');
+  const [personality, setPersonality] = useState('');
   const [user, setUser] = useState<User | null>(null);
   const [language, setLanguage] = useState<Language>('english');
 
@@ -115,11 +131,22 @@ function ChatInterface() {
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const didSendInitial = useRef(false);
+  const didStartOnboarding = useRef(false);
   const pendingMessageRef = useRef<string>('');
   const activeSessionIdRef = useRef<string | null>(null);
 
   // Keep ref in sync so callApi always has the latest sessionId
   useEffect(() => { activeSessionIdRef.current = activeSessionId; }, [activeSessionId]);
+
+  // Auto-start onboarding on fresh load
+  useEffect(() => {
+    if (didStartOnboarding.current) return;
+    if (messages.length === 0 && onboardingStep === null) {
+      didStartOnboarding.current = true;
+      setOnboardingStep('welcome');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     function handleLanguageEvent(e: Event) {
@@ -171,14 +198,23 @@ function ChatInterface() {
     );
   }
 
-  // Start a brand-new chat
+  // Start a brand-new chat — resets everything including onboarding
   function startNewChat() {
     setMessages([]);
     setActiveSessionId(null);
     setOnboardingStep(null);
     setSubject(null);
     setTopics([]);
+    setStudentName('');
+    setStudentAge('');
+    setPersonality('');
     pendingMessageRef.current = '';
+    didStartOnboarding.current = false;
+    // Restart onboarding immediately on next tick
+    setTimeout(() => {
+      setOnboardingStep('welcome');
+      didStartOnboarding.current = true;
+    }, 0);
   }
 
   const callApi = useCallback(
@@ -203,7 +239,15 @@ function ChatInterface() {
             'Content-Type': 'application/json',
             ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
           },
-          body: JSON.stringify({ message: text, subject, topics, language, history: historyForApi }),
+          body: JSON.stringify({
+            message: text,
+            subject,
+            topics,
+            language,
+            history: historyForApi,
+            studentName,
+            personality,
+          }),
         });
 
         if (!response.ok) throw new Error(`API error: ${response.status}`);
@@ -230,17 +274,14 @@ function ChatInterface() {
             const currentSessionId = activeSessionIdRef.current;
 
             if (currentSessionId) {
-              // Update existing session
               updateChatSession(currentSessionId, stored).catch(() => {});
             } else {
-              // Create new session — title = first user message
               const firstUserMsg = updated.find((m) => m.role === 'user');
               const title = (firstUserMsg?.content ?? 'Conversation').slice(0, 60);
               createChatSession({
                 userId: user.uid, subject, topics, title, messages: stored,
               }).then((newId) => {
                 setActiveSessionId(newId);
-                // Add to sidebar
                 setSessions((prev) => [{
                   id: newId, userId: user.uid, subject, topics, title, messages: stored,
                 }, ...prev]);
@@ -261,7 +302,7 @@ function ChatInterface() {
         setIsTyping(false);
       }
     },
-    [messages, subject, topics, language, user]
+    [messages, subject, topics, language, user, studentName, personality]
   );
 
   const sendMessage = useCallback(
@@ -279,9 +320,11 @@ function ChatInterface() {
       setInput('');
       setAttachment(null);
 
+      // If onboarding hasn't started yet (e.g. user somehow typed before it began),
+      // stash the message and begin onboarding
       if (onboardingStep === null) {
         pendingMessageRef.current = trimmed;
-        setOnboardingStep('subject');
+        setOnboardingStep('welcome');
         return;
       }
 
@@ -309,8 +352,10 @@ function ChatInterface() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const isEmpty = messages.length === 0 && !isTyping && onboardingStep === null;
   const onboardingActive = onboardingStep !== null && onboardingStep !== 'complete';
+
+  // Determine whether we're in the welcome full-screen state
+  const isWelcomeScreen = onboardingStep === 'welcome' && messages.length === 0;
 
   return (
     <div className="flex flex-1 overflow-hidden">
@@ -326,22 +371,18 @@ function ChatInterface() {
 
       {/* Main chat column */}
       <div className="flex flex-1 flex-col overflow-hidden">
-        <div className="flex-1 overflow-y-auto" style={{ padding: '24px 32px' }}>
-          {isEmpty ? (
-            <div className="flex h-full items-center justify-center">
-              <div className="text-center">
-                <div className="mx-auto mb-4 flex items-center justify-center text-2xl font-bold text-white"
-                  style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'linear-gradient(135deg, #6163fe 0%, #a78bfa 100%)' }}>
-                  A
-                </div>
-                <p className="text-xl font-semibold" style={{ color: '#232323' }}>
-                  Hi there! I&apos;m Apex, your AI tutor.
-                </p>
-                <p className="mt-2 text-base" style={{ color: '#94a3b8' }}>
-                  Got a tricky problem? Ask me anything — Math, Science, or whatever&apos;s on your mind.
-                </p>
-              </div>
-            </div>
+        <div
+          className="flex-1 overflow-y-auto"
+          style={{
+            padding: isWelcomeScreen ? '0' : '24px 32px',
+            display: isWelcomeScreen ? 'flex' : 'block',
+            alignItems: isWelcomeScreen ? 'center' : undefined,
+            justifyContent: isWelcomeScreen ? 'center' : undefined,
+          }}
+        >
+          {/* Welcome screen — full-screen centered card */}
+          {isWelcomeScreen ? (
+            <OnboardingWelcome onContinue={() => setOnboardingStep('name')} />
           ) : (
             <div className="mx-auto flex max-w-3xl flex-col gap-4">
               {messages.map((msg, idx) => {
@@ -358,14 +399,57 @@ function ChatInterface() {
                 );
               })}
 
+              {/* Onboarding steps rendered in the message stream */}
+              {onboardingStep === 'name' && (
+                <OnboardingName
+                  onSubmit={(name) => {
+                    setStudentName(name);
+                    setOnboardingStep('age');
+                  }}
+                />
+              )}
+              {onboardingStep === 'age' && (
+                <OnboardingAge
+                  name={studentName}
+                  onSelect={(range) => {
+                    setStudentAge(range);
+                    setOnboardingStep('subject');
+                  }}
+                />
+              )}
               {onboardingStep === 'subject' && (
-                <OnboardingSubject onSelect={(s) => { setSubject(s); setOnboardingStep('topics'); }} />
+                <OnboardingSubject
+                  name={studentName}
+                  onSelect={(s) => {
+                    setSubject(s);
+                    setOnboardingStep('personality');
+                  }}
+                />
+              )}
+              {onboardingStep === 'personality' && (
+                <OnboardingPersonality
+                  onSelect={(p) => {
+                    setPersonality(p);
+                    setOnboardingStep('topics');
+                  }}
+                />
               )}
               {onboardingStep === 'topics' && subject && (
-                <OnboardingTopics subject={subject} onContinue={(t) => { setTopics(t); setOnboardingStep('signin'); }} />
+                <OnboardingTopics
+                  subject={subject}
+                  onContinue={(t) => {
+                    setTopics(t);
+                    setOnboardingStep('signin');
+                  }}
+                />
               )}
               {onboardingStep === 'signin' && (
-                <OnboardingSignIn onSuccess={(u) => { setUser(u); setOnboardingStep('complete'); }} />
+                <OnboardingSignIn
+                  onSuccess={(u) => {
+                    setUser(u);
+                    setOnboardingStep('complete');
+                  }}
+                />
               )}
 
               {isTyping && <TypingIndicator />}
