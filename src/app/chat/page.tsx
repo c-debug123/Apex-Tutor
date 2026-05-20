@@ -116,7 +116,7 @@ function ChatInterface() {
   const [isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
 
-  const [onboardingStep, setOnboardingStep] = useState<OnboardingStep | null>(null);
+  const [onboardingStep, setOnboardingStep] = useState<OnboardingStep | null>('welcome');
   const [subject, setSubject] = useState<'math' | 'science' | null>(null);
   const [topics, setTopics] = useState<string[]>([]);
   const [studentName, setStudentName] = useState('');
@@ -138,15 +138,6 @@ function ChatInterface() {
   // Keep ref in sync so callApi always has the latest sessionId
   useEffect(() => { activeSessionIdRef.current = activeSessionId; }, [activeSessionId]);
 
-  // Auto-start onboarding on fresh load
-  useEffect(() => {
-    if (didStartOnboarding.current) return;
-    if (messages.length === 0 && onboardingStep === null) {
-      didStartOnboarding.current = true;
-      setOnboardingStep('welcome');
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   useEffect(() => {
     function handleLanguageEvent(e: Event) {
@@ -487,9 +478,6 @@ export default function ChatPage() {
         </Link>
         <div className="flex items-center gap-3">
           <LanguagePill />
-          <Link href="/learn" style={{ color: '#6163fe', fontSize: '13px', fontWeight: 500 }}>
-            Learn
-          </Link>
           <Link href="/" className="text-sm transition-colors" style={{ color: '#6b7c94' }}>
             Back to home
           </Link>
